@@ -3,7 +3,7 @@ FROM '/tmp/resources/User_group.csv'
 DELIMITER ';'
 CSV HEADER;
 
-COPY User(user_id, first_name, last_name, pw_hash, email, postal_address, phone_nr, is_ut_student, fk_user_group_id)
+COPY LUser(user_id, first_name, last_name, pw_hash, email, postal_address, phone_nr, is_ut_student, fk_user_group_id)
 FROM '/tmp/resources/User.csv'
 DELIMITER ';'
 CSV HEADER;
@@ -24,7 +24,7 @@ DELIMITER ';'
 CSV HEADER;
 
 COPY Book(book_id, title, nr_of_pages, year, fk_lang_id)
-FROM '/resources/Book.csv'
+FROM '/tmp/resources/Book.csv'
 DELIMITER ';'
 CSV HEADER;
 
@@ -58,7 +58,7 @@ FROM '/tmp/resources/Loan.csv'
 DELIMITER ';'
 CSV HEADER;
 
-COPY Reservation(reservation_id, reserve_date, reservation_start, reservation_end, fk_book_id, fk_user_id)
+COPY Reservation(reservation_id, reserve_date, reservation_end, fk_book_id, fk_user_id)
 FROM '/tmp/resources/Reservation.csv'
 DELIMITER ';'
 CSV HEADER;

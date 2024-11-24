@@ -1,20 +1,23 @@
+DROP TABLE IF EXISTS Book_subject;
+DROP TABLE IF EXISTS Loan;
+DROP TABLE IF EXISTS Reservation;
+DROP TABLE IF EXISTS Book_copy;
 DROP TABLE IF EXISTS Book;
 DROP TABLE IF EXISTS Language;
 DROP TABLE IF EXISTS Subject;
-DROP TABLE IF EXISTS Book_subject;
 DROP TABLE IF EXISTS Publisher;
 DROP TABLE IF EXISTS Author;
+DROP TABLE IF EXISTS Booking;
 DROP TABLE IF EXISTS Card;
 DROP TABLE IF EXISTS Resource;
-DROP TABLE IF EXISTS Book;
-DROP TABLE IF EXISTS Book_copy;
-DROP TABLE IF EXISTS Loan;
-DROP TABLE IF EXISTS Reservation;
-DROP TABLE IF EXISTS User;
+DROP TABLE IF EXISTS LUser;
 DROP TABLE IF EXISTS User_group;
 DROP TABLE IF EXISTS Resource_type;
-DROP TABLE IF EXISTS Booking;
 
+CREATE TABLE Language (
+    lang_id SERIAL PRIMARY KEY,
+    lang_name VARCHAR(100) NOT NULL
+);
 
 CREATE TABLE Book (
     book_id VARCHAR(13) PRIMARY KEY,
@@ -23,11 +26,6 @@ CREATE TABLE Book (
     year INTEGER NOT NULL,
     fk_lang_id SERIAL NOT NULL,
     FOREIGN KEY (fk_lang_id) REFERENCES Language(lang_id)
-);
-
-CREATE TABLE Language (
-    lang_id SERIAL PRIMARY KEY,
-    lang_name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE Subject (
@@ -63,13 +61,36 @@ CREATE TABLE Book_author (
     FOREIGN KEY (fk_author_id) REFERENCES Author(author_id)
 );
 
+CREATE TABLE User_group (
+    user_group_id SERIAL PRIMARY KEY,
+    group_name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE LUser (
+    user_id VARCHAR(10) PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    pw_hash VARCHAR(500) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    postal_address VARCHAR(200),
+    phone_nr VARCHAR(20),
+    is_ut_student BOOLEAN DEFAULT FALSE NOT NULL,
+     fk_user_group_id SERIAL NOT NULL,
+    FOREIGN KEY (fk_user_group_id) REFERENCES User_group(user_group_id)
+);
+
 CREATE TABLE Card (
     card_id VARCHAR(15) PRIMARY KEY,
     activation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     status VARCHAR(50) DEFAULT 'active' NOT NULL,
     exp_date DATE,
     fk_user_id VARCHAR(10) NOT NULL,
-    FOREIGN KEY (fk_user_id) REFERENCES User(user_id)
+    FOREIGN KEY (fk_user_id) REFERENCES LUser(user_id)
+);
+
+CREATE TABLE Resource_type (
+    resource_type_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE Resource (
@@ -93,9 +114,9 @@ CREATE TABLE Loan (
     borrow_date DATE DEFAULT CURRENT_DATE NOT NULL,
     due_date DATE DEFAULT (CURRENT_DATE + INTERVAL '15 DAYS') NOT NULL,
     return_date DATE,
-    fk_card_id SERIAL NOT NULL,
+    fk_card_id VARCHAR(15) NOT NULL,
     fk_book_copy_id SERIAL NOT NULL,
-    FOREIGN KEY (fk_student_card_id) REFERENCES Card(card_id),
+    FOREIGN KEY (fk_card_id) REFERENCES Card(card_id),
     FOREIGN KEY (fk_book_copy_id) REFERENCES Book_copy(book_copy_id)
 );
 
@@ -106,38 +127,15 @@ CREATE TABLE Reservation (
     fk_book_id VARCHAR(13) NOT NULL,
     fk_user_id VARCHAR(10) NOT NULL,
     FOREIGN KEY (fk_book_id) REFERENCES Book(book_id),
-    FOREIGN KEY (fk_user_id) REFERENCES User(user_id),
+    FOREIGN KEY (fk_user_id) REFERENCES LUser(user_id),
     CONSTRAINT chk_reservation_end CHECK (reservation_end >= reserve_date)
-);
-
-CREATE TABLE User (
-    user_id VARCHAR(10) PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    pw_hash VARCHAR(500) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    postal_address VARCHAR(200),
-    phone_nr VARCHAR(20),
-    is_ut_student BOOLEAN DEFAULT FALSE NOT NULL,
-     fk_user_group_id SERIAL NOT NULL,
-    FOREIGN KEY (fk_user_group_id) REFERENCES User_group(user_group_id)
-);
-
-CREATE TABLE User_group (
-    user_group_id SERIAL PRIMARY KEY,
-    group_name VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE Resource_type (
-    resource_type_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE Booking (
     booking_id SERIAL PRIMARY KEY,
     start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     end_time TIMESTAMP NOT NULL,
-    fk_card_id SERIAL NOT NULL,
+    fk_card_id VARCHAR(15) NOT NULL,
     fk_resource_id SERIAL NOT NULL,
     FOREIGN KEY (fk_card_id) REFERENCES Card(card_id),
     FOREIGN KEY (fk_resource_id) REFERENCES Resource(resource_id),
