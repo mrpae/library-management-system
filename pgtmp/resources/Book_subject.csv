@@ -1,0 +1,4 @@
+book_sub_id;fk_subject_id;fk_book_id
+1;1;B001
+2;2;B002
+3;3;B003

@@ -1,0 +1,4 @@
+book_author_id;fk_book_id;fk_author_id
+1;B001;1
+2;B002;2
+3;B003;3

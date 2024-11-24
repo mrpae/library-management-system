@@ -1,0 +1,4 @@
+resource_id;name;fk_resource_type_id
+1;Study Room 101;1
+2;Computer Station A1;2
+3;Projector A;3
