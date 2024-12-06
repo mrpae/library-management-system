@@ -1,0 +1,4 @@
+card_id;activation_date;status;fk_user_id;exp_date
+C001;2024-10-01T10:00:00;active;U001;
+C002;2024-10-05T15:00:00;active;U002;
+C003;2024-10-10T12:00:00;active;U003;

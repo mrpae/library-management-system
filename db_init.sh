@@ -8,10 +8,7 @@ until pg_isready; do
 done
 
 # Run initialization SQL scripts
-psql -U $POSTGRES_USER -d library-management-system -f /tmp/scripts/create_books.sql
-psql -U $POSTGRES_USER -d library-management-system -f /tmp/scripts/create_borrowers.sql
-psql -U $POSTGRES_USER -d library-management-system -f /tmp/scripts/create_adminaccs.sql
-psql -U $POSTGRES_USER -d library-management-system -f /tmp/scripts/create_transactions.sql
-psql -U $POSTGRES_USER -d library-management-system -f /tmp/scripts/create_historys.sql
+psql -U $POSTGRES_USER -d library-management-system -f /tmp/resources/create_tables.sql
+psql -U $POSTGRES_USER -d library-management-system -f /tmp/resources/populate_tables.sql
 
 echo "All initialization scripts completed."
