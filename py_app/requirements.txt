@@ -5,3 +5,4 @@ polars>=1.6
 pandas>=2.2.2
 pyarrow>=17.0.0
 python-dotenv==1.0.0
+pynput==1.7.7
