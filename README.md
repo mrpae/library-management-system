@@ -2,8 +2,6 @@
 
 UT Databases (LTAT.02.021) project
 
-
-
 ## Walkthrough
 
 Make sure you have installed Docker Desktop and have it running.
@@ -18,19 +16,33 @@ Go to [PgAdmin](http://localhost:5050/) and log in with the PGADMIN_DEFAULT cred
 * Give a name as you would like
 * Under `connection` tab, Host is the container name (`db`), Username and Password are in `.env`.
 
-
 ### DEMO
-functions are in pure python file db_functions.py, if you want to test them out from commandline you might need to create virtual env (vsc suggests and does it for you) and install requirements from requirement.txt:
-> /path/to/virtualEnv/library-management-system-main/.venv/bin/python -m pip install -r requirements.txt -v
-Then later can run similarly: 
-> /path/to/virtualEnv/library-management-system-main/.venv/bin/python db_functions.py
 
-Lets assume we have a senario where a new Tartu uni student wants to get the library access and loan out some books.
+There are three different user groups. Sign in with either one:
 
-* Start front application and log in with library credentials: email and pw (jane.smith@example.com, hashedpassword3) function (log_in_user(username, password))
-* Add new student user (add_new_user(first_name, last_name, pw_hash, email, postal_address, phone_nr, is_ut_student, fk_user_group_id), after get all student users get_all_users_from_specific_user_group(user_group_id))
-* Create card for student user (add_new_card_for_user(user_id))
-* Search for book by title (get_book_copies_by_title(title))
-* See that the book is already loaned out (only one copy exists)
-* Reserve book (reserve_book(book_id, user_id))
-* Loan out different kind of book (get_book_copies_by_title(title) -> loan_book_and_get_loans(book_copy_id, card_id))
+* Student profile: email `bob.brown@example.com` and password `hashedpassword2`
+  * Search available books by title. Try using a keyword `intro`.
+  * Reserve a book by entering a book ID. For example, `B001`.
+  * See all your reservations, bookings and loans. There is no need to specify anything.
+  * Update your password.
+  * Exit.
+* Librarian profile: email `jane.smith@example.com` and password `hashedpassword3`
+  * Search available books by title. Try using a keyword `intro`.
+  * View the profiles of all students.
+  * View reservations. Here you must enter a `user_ID` if you wish to see reservations made by a specific user or you can insert an empty string to see all reservations.
+  * View loans. The logic is the same as with seeing the reservations. There is a separate column to see overdue loans.
+  * View bookings. This is purely about resources other than books.
+  * Loan a book copy to a student. Here you must specify `Book copy ID` and `Card ID.` Transaction fails if the copy is already loaned out.
+  * Receive a book copy. Here you must specify the `Loan ID` of an active loan and it ends an active loan.
+  * Assign resources. Specify `Resource ID`, `Card ID` and the end time of the booking. This adds a new row to the `Booking` table.
+  * Update your password.
+  * Exit.
+* Admin profile: email `john.doe@example.com` and password `hashedpassword4`
+  * Add a new user. This asks all necessary fields to add a new user.
+  * Assign a new card for a user. This shows a list of all users and asks for a `User ID` you wish to assign a new card.
+  * Activate or deactivate a card and set its expiration date. This shows a list of all cards and asks for a `Card ID` you wish to modify. Then you must specify the status and an expiration date.
+  * Add a resource. This asks for a resource name and type. If the type does not exist then there is a possibility to add a new one.
+  * Make a query. Any valid query works (select, update, create, delete, insert, etc.).
+  * See the details of all loans.
+  * Update your password.
+  * Exit.
