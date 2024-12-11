@@ -201,7 +201,7 @@ def get_book_copies_by_title(title):
         bc.rack_nr
         b.book_id,
         CASE 
-            WHEN l.loan_id IS NOT NULL AND l.return_date IS NULL THEN 'Reserved'
+            WHEN  l.loan_id IS NOT NULL AND l.return_date IS NULL THEN 'Reserved'
             ELSE 'Available'
         END AS status,
         l.due_date AS reserved_until
