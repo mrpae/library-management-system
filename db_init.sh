@@ -7,6 +7,9 @@ until pg_isready; do
   sleep 2
 done
 
+# Import all required python packages
+docker exec -it py bash -c "pip install /scripts/requirements.txt"
+
 # Run initialization SQL scripts
 psql -U $POSTGRES_USER -d library-management-system -f /tmp/resources/create_tables.sql
 psql -U $POSTGRES_USER -d library-management-system -f /tmp/resources/populate_tables.sql

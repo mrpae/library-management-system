@@ -3,3 +3,4 @@ U001;Alice;Green;hashedpassword1;alice.green@example.com;Pikk tn 40, Tartu;555-1
 U002;Bob;Brown;hashedpassword2;bob.brown@example.com;456 Oak Avenue, Maryland;555-5678;FALSE;1
 U003;Jane;Smith;hashedpassword3;jane.smith@example.com;Pepleri 12, Tartu;333-5678;FALSE;2
 U004;John;Doe;hashedpassword4;john.doe@example.com;Tammsaare tee 4, Tallinn;333-5678;FALSE;3
+U005;Super;Admin;admin;admin@admin.com;Middle of Nowhere 12, Anywhere;555-00-555;FALSE;3
