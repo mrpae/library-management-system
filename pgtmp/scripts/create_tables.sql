@@ -86,7 +86,7 @@ CREATE TABLE Card (
     card_id VARCHAR(15) PRIMARY KEY,
     activation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     status VARCHAR(50) DEFAULT 'active' NOT NULL,
-    exp_date DATE,
+    exp_date DATE DEFAULT '2099-12-31',
     fk_user_id VARCHAR(10) NOT NULL,
     FOREIGN KEY (fk_user_id) REFERENCES LUser(user_id)
 );

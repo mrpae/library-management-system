@@ -14,12 +14,27 @@ services:
     volumes:
       - ./pgdata:/var/lib/postgresql/data
       - ./pgtmp:/tmp
-      - ./db_init.sh:/docker-entrypoint-initdb.d/db_init.sh # Mount init script as volume
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app_network
+
+  db-init:
+    container_name: db-init
+    image: postgres:16.4 # Or any image with PostgreSQL tools
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./pgtmp:/tmp
+    entrypoint: ["/bin/bash", "/tmp/scripts/db_init.sh"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     networks:
       - app_network
 
@@ -38,7 +53,7 @@ services:
       - ./py_app:/scripts
     entrypoint: bash -c "pip install -r /scripts/requirements.txt && bash"
     depends_on:
-      - db
+      - db-init
     networks:
       - app_network
 
@@ -51,7 +66,7 @@ services:
     ports:
       - "5050:80" # type localhost:5050 to your browser to access the UI
     depends_on:
-      - db
+      - db-init
     networks:
       - app_network
 
