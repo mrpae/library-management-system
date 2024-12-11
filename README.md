@@ -18,6 +18,8 @@ Go to [PgAdmin](http://localhost:5050/) and log in with the PGADMIN_DEFAULT cred
 
 ### DEMO
 
+The application can be launched with `docker exec -it py bash -c "python scripts/app.py"`.
+
 There are three different user groups. Sign in with either one:
 
 * Student profile: email `bob.brown@example.com` and password `hashedpassword2`

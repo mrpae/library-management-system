@@ -198,6 +198,7 @@ def get_book_copies_by_title(title):
         b.title AS book_title,
         bc.book_copy_id as copy_id,
         bc.barcode as barcode,
+        bc.rack_nr
         b.book_id,
         CASE 
             WHEN l.loan_id IS NOT NULL AND l.return_date IS NULL THEN 'Reserved'
@@ -217,7 +218,7 @@ def get_book_copies_by_title(title):
         """, (f'%{title}%',))
         data = cur.fetchall()
         copies_columns = [
-            "Book Title", "Copy ID", "Barcode", "Book ID", "Status", "Reserved Until"
+            "Book Title", "Copy ID", "Barcode", "Rack Number", "Book ID", "Status", "Reserved Until"
         ]
         return pd.DataFrame.from_records(data, columns=copies_columns)
     except Exception as e:

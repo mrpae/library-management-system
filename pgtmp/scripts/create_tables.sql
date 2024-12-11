@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS Book;
 DROP TABLE IF EXISTS Language;
 DROP TABLE IF EXISTS Subject;
 DROP TABLE IF EXISTS Publisher;
+DROP TABLE IF EXISTS Book_publisher;
 DROP TABLE IF EXISTS Author;
 DROP TABLE IF EXISTS Booking;
 DROP TABLE IF EXISTS Card;
@@ -48,6 +49,14 @@ CREATE TABLE Book_subject (
 CREATE TABLE Publisher (
     pub_id SERIAL PRIMARY KEY,
     pub_name VARCHAR(200) NOT NULL
+);
+
+CREATE TABLE Book_publisher (
+    book_publisher_id SERIAL PRIMARY KEY,
+    fk_book_id VARCHAR(13) NOT NULL,
+    fk_publisher_id INTEGER NOT NULL,
+    FOREIGN KEY (fk_book_id) REFERENCES Book(book_id),
+    FOREIGN KEY (fk_publisher_id) REFERENCES Publisher(pub_id)
 );
 
 CREATE TABLE Author (
@@ -106,6 +115,7 @@ CREATE TABLE Resource (
 CREATE TABLE Book_copy (
     book_copy_id SERIAL PRIMARY KEY,
     barcode VARCHAR(15) NOT NULL,
+    rack_nr VARCHAR(8) NOT NULL,
     price FLOAT(2) NOT NULL,
     purchase_date DATE NOT NULL,
     fk_book_id VARCHAR(13) NOT NULL,

@@ -28,6 +28,11 @@ FROM '/tmp/data/Book.csv'
 DELIMITER ';'
 CSV HEADER;
 
+COPY Book_publisher(fk_book_id, fk_publisher_id)
+FROM '/tmp/data/Book_publisher.csv'
+DELIMITER ';'
+CSV HEADER;
+
 COPY Book_subject(fk_subject_id, fk_book_id)
 FROM '/tmp/data/Book_subject.csv'
 DELIMITER ';'
@@ -43,7 +48,7 @@ FROM '/tmp/data/Book_author.csv'
 DELIMITER ';'
 CSV HEADER;
 
-COPY Book_copy(barcode, price, purchase_date, fk_book_id)
+COPY Book_copy(barcode, rack_nr, price, purchase_date, fk_book_id)
 FROM '/tmp/data/Book_copy.csv'
 DELIMITER ';'
 CSV HEADER;
