@@ -705,7 +705,7 @@ def assign_resource(resource_id, card_id, start_time, end_time):
             conn.close()
 
 
-def view_bookings():
+def view_bookings(user_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
@@ -726,6 +726,8 @@ def view_bookings():
             join resource_type rt on r.fk_resource_type_id = rt.resource_type_id
             join luser lu on c.fk_user_id = lu.user_id
         """
+        if user_id != "":
+            query += f"\nWHERE lu.user_id = '{user_id}'"
         cur.execute(query)
         bookings = cur.fetchall()
         bookings_columns = ["User Name", "Booking ID", "Start Time", "End Time", "Card ID",

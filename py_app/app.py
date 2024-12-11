@@ -95,7 +95,7 @@ def admin_menu(email):
             make_query(query_rows)
         
         elif choice == "6":
-            loans = get_all_loans()
+            loans = get_all_loans("")
             print(loans.to_string(index=False))
 
         elif choice == "7":
@@ -158,7 +158,8 @@ def librarian_menu(email):
                 print("No loans found.")
 
         elif choice == "5":
-            view_bookings()
+            print("All bookings: ")
+            view_bookings("")
         
         elif choice == "6":
             try:
@@ -234,6 +235,8 @@ def student_menu(user_id, email):
             show_results = show_user_loans_and_reservations(user_id)
             if isinstance(show_results, Exception):
                 print(f"An error occurred: {show_results}")
+            print("\nAll bookings: ")
+            view_bookings(user_id)
 
         elif choice == "4":
             update_password(email)
@@ -263,13 +266,12 @@ def main():
                 admin_menu(email)
             else:
                 print("Invalid role selected.")
-            break  # Exit the loop after successful login
+            os.system('clear')
         else:
             print("\nLogin failed. Please check your credentials.")
             retry = input("Do you want to retry? (y/n): ").strip().lower()
             if retry == 'y':
                 os.system('clear')
-                continue
             else:
                 print("Exiting the system. Goodbye!")
                 break
