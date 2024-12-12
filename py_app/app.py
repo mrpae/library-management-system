@@ -166,13 +166,8 @@ def librarian_menu(email):
                 book_copy_id = int(input("Enter book copy ID to loan: "))
                 card_id = input("Enter card ID: ")
                 result = loan_book_and_get_loans(book_copy_id, card_id)
-                if isinstance(result, pd.DataFrame) and not result.empty:
-                    print(result.to_string(index=False))
-                    print("Book loaned successfully!")
-                elif isinstance(result, Exception):
+                if isinstance(result, Exception):
                     print(f"An error occurred: {result}")
-                else:
-                    print("Loan operation failed.")
             except ValueError:
                 print("Invalid input. Please enter valid IDs.")
 

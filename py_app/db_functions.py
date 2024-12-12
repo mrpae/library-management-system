@@ -160,13 +160,15 @@ def get_all_users_from_specific_user_group(user_group_id):
         cur = conn.cursor()
         query = f"""
             SELECT user_id, first_name, last_name, email, postal_address, phone_nr, 
-                case when is_ut_student then 'Yes' else 'No' end as uni_student
-            from LUser 
+                case when is_ut_student then 'Yes' else 'No' end as uni_student,
+                c.card_id
+            from LUser lu
+            LEFT JOIN Card c on lu.user_id = c.fk_user_id and c.status = 'active'
             WHERE fk_user_group_id = {user_group_id}
         """
         cur.execute(query)
         data = cur.fetchall()
-        return pd.DataFrame.from_records(data, columns=["User ID", "First Name", "Last Name", "Email", "Postal Address", "Phone Number", "University student"])
+        return pd.DataFrame.from_records(data, columns=["User ID", "First Name", "Last Name", "Email", "Postal Address", "Phone Number", "University student", "Card ID"])
     except Exception as e:
         return e
     finally:
@@ -178,16 +180,30 @@ def add_new_card_for_user(user_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
+
+        # Deactivate existing cards for the user
+        cur.execute("""
+            UPDATE Card SET status = 'inactive'
+            WHERE fk_user_id = %s AND status = 'active'
+        """, (user_id,))
+        
+        # Add new card
         card_id = id_generator(size=15)
-        cur.execute("INSERT INTO Card(card_id, exp_date, fk_user_id) VALUES(%s, %s, %s)", (card_id, date(2099, 12, 31), user_id))
+        cur.execute("""
+            INSERT INTO Card(card_id, exp_date, fk_user_id, status)
+            VALUES(%s, %s, %s, 'active')
+        """, (card_id, date(2099, 12, 31), user_id))
+        
         conn.commit()
         print(f"Card with id '{card_id}' created for user '{user_id}'")
+        
     except Exception as e:
         return e
     finally:
         if conn:
             cur.close()
             conn.close()
+
 
 def get_book_copies_by_title(title):
     try:
@@ -232,114 +248,102 @@ def reserve_book(book_id, user_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        # Find the earliest due date for the book
-        cur.execute(
-        """
-        SELECT MIN(l.due_date)
-        FROM Loan l
-        JOIN Book_copy bc ON l.fk_book_copy_id = bc.book_copy_id
-        WHERE bc.fk_book_id = %s AND l.return_date IS NULL
-        """,
-        (book_id,)
-        )
+
+        # Check if a reservation already exists for this book by the same user
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM Reservation
+            WHERE fk_book_id = %s AND fk_user_id = %s AND reservation_end >= CURRENT_DATE
+        """, (book_id, user_id))
+        
+        if cur.fetchone()[0] > 0:
+            print("Reservation already exists for this book.")
+            return
+
+        # Find the earliest due date for the book copies that are currently on loan
+        cur.execute("""
+            SELECT MIN(l.due_date)
+            FROM Loan l
+            JOIN Book_copy bc ON l.fk_book_copy_id = bc.book_copy_id
+            WHERE bc.fk_book_id = %s AND l.return_date IS NULL
+        """, (book_id,))
+        
         earliest_due_date = cur.fetchone()[0]
-    
-        if earliest_due_date:
-            # Calculate reservation_end as earliest_due_date + 5 days
-            reservation_end = earliest_due_date + timedelta(days=5)
-        else:
-            # If no loans exist, set reservation_end to 5 days from today
-            reservation_end = datetime.now() + timedelta(days=5)
-        cur.execute(f"""INSERT INTO Reservation(reserve_date, reservation_end, fk_book_id, fk_user_id) 
-                VALUES ('{datetime.now()}', '{reservation_end}', '{book_id}', '{user_id}')""")
+        
+        reservation_end = earliest_due_date + timedelta(days=5) if earliest_due_date else datetime.now() + timedelta(days=5)
+
+        # Insert new reservation record
+        cur.execute("""
+            INSERT INTO Reservation(reserve_date, reservation_end, fk_book_id, fk_user_id)
+            VALUES (%s, %s, %s, %s)
+        """, (datetime.now(), reservation_end, book_id, user_id))
+        
         conn.commit()
-        cur.execute(
-        """
-        SELECT 
-            b.title,
-            r.reserve_date,
-            r.reservation_end,
-            fk_user_id as user_id
-        FROM 
-            Reservation r
-        JOIN 
-            Book b ON r.fk_book_id = b.book_id
-        WHERE 
-            fk_book_id = %s
-        ORDER BY 
-            reserve_date ASC;
-        """,
-        (book_id,)
-        )
-        data = cur.fetchall()
-        return pd.DataFrame.from_records(data)
+        
     except Exception as e:
         return e
     finally:
-    # Close the connection
         if conn:
             cur.close()
-            conn.close()   
+            conn.close()
+ 
 
 def loan_book_and_get_loans(book_copy_id, card_id):
     try:
-        # Connect to the database
         conn = get_db_connection()
         cur = conn.cursor()
 
+        # Check if the book is already loaned out
         cur.execute("""
-            SELECT loan_id 
-            FROM Loan 
-            WHERE fk_book_copy_id = %s 
+            SELECT loan_id
+            FROM Loan
+            WHERE fk_book_copy_id = %s
             AND return_date IS NULL
         """, (book_copy_id,))
-
-        # If there is a result, the book is already loaned out
         if cur.fetchone():
             print(f"Book copy {book_copy_id} is already loaned out.")
             return
 
+        # Check the number of active loans for the user
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM Loan l
+            JOIN Card c ON l.fk_card_id = c.card_id
+            WHERE c.card_id = %s AND l.return_date IS NULL
+        """, (card_id,))
+        active_loans_count = cur.fetchone()[0]
+
+        # Get user information to determine loan limit
+        cur.execute("""
+            SELECT lu.is_ut_student
+            FROM Card c
+            JOIN LUser lu ON c.fk_user_id = lu.user_id
+            WHERE c.card_id = %s
+        """, (card_id,))
+        is_ut_student = cur.fetchone()[0]
+
+        max_loans = 5 if is_ut_student else 1
+
+        if active_loans_count >= max_loans:
+            print(f"Loan limit reached: {max_loans} active loans allowed.")
+            return
+
         # Loan the book
-        cur.execute(
-            """
+        cur.execute("""
             INSERT INTO Loan (fk_card_id, fk_book_copy_id)
             VALUES (%s, %s)
-            """,
-            (card_id, book_copy_id)
-        )
+        """, (card_id, book_copy_id))
+        
         conn.commit()
-
         print(f"Book copy {book_copy_id} loaned to card ID {card_id}.")
-
-        # Retrieve all loans ordered by newest to oldest
-        cur.execute(
-            """
-            SELECT 
-                b.title,
-                l.borrow_date,
-                l.due_date,
-                l.return_date,
-                l.fk_card_id,
-                l.loan_id
-            FROM 
-                Loan l
-            JOIN 
-                Book_copy bc ON l.fk_book_copy_id = bc.book_copy_id
-            JOIN 
-                Book b ON bc.fk_book_id = b.book_id
-            ORDER BY 
-                l.borrow_date DESC, l.loan_id DESC
-            """
-        )
-        loans = cur.fetchall()
-        return pd.DataFrame.from_records(loans)
+        
     except Exception as e:
         return e
     finally:
-        # Close the connection
         if conn:
             cur.close()
             conn.close()
+
 
 def get_all_loans(user_id):
     try:
@@ -350,6 +354,7 @@ def get_all_loans(user_id):
         query = """
             SELECT 
                 b.title,
+                bc.book_copy_id,
                 l.borrow_date,
                 l.due_date,
                 case when now()::date > l.due_date then 'OVERDUE' else '' end as overdue,
@@ -372,7 +377,7 @@ def get_all_loans(user_id):
         query += "\nORDER BY l.borrow_date DESC, l.loan_id DESC;"
         cur.execute(query)
         loans = cur.fetchall()
-        return pd.DataFrame.from_records(loans, columns=["Book Title", "Borrow Date", "Due Date", "Overdues", "Return Date", "Card ID", "Loan ID"])
+        return pd.DataFrame.from_records(loans, columns=["Book Title", "Book Copy ID", "Borrow Date", "Due Date", "Overdues", "Return Date", "Card ID", "Loan ID"])
     except Exception as e:
         return e
     finally:

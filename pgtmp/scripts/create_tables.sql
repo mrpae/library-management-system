@@ -94,11 +94,12 @@ CREATE TABLE LUser (
 CREATE TABLE Card (
     card_id VARCHAR(15) PRIMARY KEY,
     activation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    status VARCHAR(50) DEFAULT 'active' NOT NULL,
+    status VARCHAR(10) CHECK (status IN ('active', 'inactive')) DEFAULT 'active' NOT NULL,
     exp_date DATE DEFAULT '2099-12-31',
     fk_user_id VARCHAR(10) NOT NULL,
     FOREIGN KEY (fk_user_id) REFERENCES LUser(user_id)
 );
+
 
 CREATE TABLE Resource_type (
     resource_type_id SERIAL PRIMARY KEY,

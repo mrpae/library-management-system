@@ -2,3 +2,4 @@ book_id;title;nr_of_pages;year;fk_lang_id
 B001;Introduction to Databases;450;2020;1
 B002;Python Programming;320;2019;1
 B003;Lineaarne algebra algajatele;280;2018;2
+B004;Fundamentals of Data Engineering;422;2022;1

@@ -2,3 +2,5 @@ fk_book_id;fk_author_id
 B001;1
 B002;2
 B003;3
+B004;4
+B004;5
